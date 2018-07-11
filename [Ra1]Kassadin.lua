@@ -10,7 +10,6 @@ ra1Kassadin.Combo:Boolean("Q", "Use Q", true)
 ra1Kassadin.Combo:Boolean("W", "Use W", true)
 ra1Kassadin.Combo:Boolean("E", "Use E", true)
 ra1Kassadin.Combo:Boolean("R", "Use R", true)
-ra1Kassadin.Combo:DropDown("ComboSeq","Combo Type", 2, {"Q => R => W => E", "W => Q => R=> E"})
 
 -- Harras
 ra1Kassadin:SubMenu("Harass", "Harass Settings")
@@ -18,6 +17,14 @@ ra1Kassadin.Harass:Boolean("Q", "Use Q", true)
 ra1Kassadin.Harass:Boolean("W", "Use W", true)
 ra1Kassadin.Harass:Boolean("E", "Use E", true)
 ra1Kassadin.Harass:Slider("Mana", "Min. Mana", 50, 0, 100, 1)
+
+-- Lane Clear
+ra1Kassadin:SubMenu("LaneClear", "Lane Clear Settings")
+ra1Kassadin.LaneClear:Boolean("Q", "Use Q", true)
+ra1Kassadin.LaneClear:Boolean("W", "Use W", true)
+ra1Kassadin.LaneClear:Boolean("E", "Use E", false)
+ra1Kassadin.LaneClear:Boolean("R", "Use R", false)
+ra1Kassadin.LaneClear:Slider("Mana", "Min. Mana", 70, 0, 100, 1)
 
 -- Auto
 ra1Kassadin:SubMenu("Auto", "Auto Settings")
@@ -92,7 +99,7 @@ function castW()
 end
 
 function castE()
-    if getDistance(target) < SpellsRange.E then
+    if getDistance(target) < SpellsRange.E - 10 then
         local targetPos = GetOrigin(target)
         CastSkillShot(_E, targetPos)
     end
@@ -137,6 +144,41 @@ function Harass()
     end
 end
 
+function LaneClear()
+    if Mode() == 'LaneClear' then
+    local HeroMana = 100*GetCurrentMana(myHero)/GetMaxMana(myHero)
+        for _, Minion in pairs(minionManager.objects) do
+            if GetTeam(Minion) == MINION_ENEMY and HeroMana > ra1Kassadin.LaneClear.Mana:Value() then
+                -- Use Q
+                if ra1Kassadin.LaneClear.Q:Value() then
+                    if ValidTarget(Minion, SpellsRange.Q) and Ready(_Q) then
+                        CastTargetSpell(Minion, _Q)
+                    end
+                end
+                -- Use W 
+                if ra1Kassadin.LaneClear.W:Value() then
+                    if ValidTarget(Minion, SpellsRange.W) and Ready(_W) then
+                        CastSpell(_W)
+                        AttackUnit(Minion)
+                    end
+                end
+                -- Use E
+                if ra1Kassadin.LaneClear.E:Value() then
+                    if ValidTarget(Minion, SpellsRange.E) and Ready(_E) then
+                        CastSkillShot(_E, GetOrigin(Minion))
+                    end
+                end
+                -- Use R
+                if ra1Kassadin.LaneClear.R:Value() then
+                    if ValidTarget(Minion, SpellsRange.R) and Ready(_R) then
+                        CastSkillShot(_R, GetOrigin(Minion))
+                    end
+                end
+            end
+        end
+    end
+end
+
 function Auto()
     if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > ra1Kassadin.Auto.Mana:Value() then
         if ra1Kassadin.Auto.Q:Value() and Ready(_Q) then
@@ -153,6 +195,7 @@ OnTick(function()
     Combo()
     Harass()
     Auto()
+    LaneClear()
     end
 )
 
