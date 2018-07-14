@@ -179,8 +179,6 @@ function LaneClear()
                         local isEnabled = GotBuff(myHero, "KarthusDefile")
                         if GetTeam(minion) == MINION_ENEMY and GetDistance(minion, myHero) <= Spells.E.range and isEnabled == 0 then
                             CastSpell(_E)
-                        elseif isEnabled > 0 and GetDistance(minion, myHero) > Spells.E.range then
-                            CastE()
                         end    
                     end
                 end
