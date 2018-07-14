@@ -59,7 +59,7 @@ local Spells = {
         width = 800,
     },
     E = {
-        range = 850
+        range = 820
     },
     R = {
         range = 10000
@@ -87,9 +87,7 @@ end
 function CastQ(customTarget)
     local hitChance = ra1Karthus.Misc.qHitChance:Value() / 10
     if ra1Karthus.Misc.qPred:Value() == 1 then
-        PrintChat('OpenPred')
         local qPred = GetCircularAOEPrediction(customTarget, Spells.Q)
-        PrintChat(qPred.hitChance .. ' - ' .. hitChance)
         if qPred.hitChance >= hitChance then
             CastSkillShot(_Q, qPred.castPos)
         end
@@ -129,7 +127,9 @@ function Combo()
         end
         if ra1Karthus.Combo.E:Value() then
             local isEnabled = GotBuff(myHero, "KarthusDefile")
-            if isEnabled == 0 and Ready(_E) and GetDistance(myHero, target) <= Spells.E.range + 10 then
+            if isEnabled == 0 and Ready(_E) and GetDistance(myHero, target) <= Spells.E.range then
+                CastE()
+            elseif isEnabled > 0 and GetDistance(myHero, target) > Spells.E.range then
                 CastE()
             end
         end
@@ -156,6 +156,8 @@ function Harass()
                 local isEnabled = GotBuff(myHero, "KarthusDefile")
                 if isEnabled == 0 and Ready(_E) and GetDistance(myHero, target) <= Spells.E.range + 10 then
                     CastE()
+                elseif isEnabbled > 0 and GetDistance(myHero, target) > Spells.E.range then
+                    CastE()
                 end
             end
         end
@@ -177,6 +179,8 @@ function LaneClear()
                         local isEnabled = GotBuff(myHero, "KarthusDefile")
                         if GetTeam(minion) == MINION_ENEMY and GetDistance(minion, myHero) <= Spells.E.range and isEnabled == 0 then
                             CastSpell(_E)
+                        elseif isEnabled > 0 and GetDistance(minion, myHero) > Spells.E.range then
+                            CastE()
                         end    
                     end
                 end
@@ -192,11 +196,11 @@ function Auto()
             CastQ(target)
         end
         if ra1Karthus.Auto.aE:Value() then
-            if GetDistance(myHero, target) <= Spells.E.range + 50 then
-                local isEnabled = GotBuff(myHero, "KarthusDefile")
-                if isEnabled == 0 then
-                    CastE()
-                end
+            local isEnabled = GotBuff(myHero, "KarthusDefile")
+            if GetDistance(myHero, target) <= Spells.E.range and isEnabled == 0 then
+                CastE()
+            elseif isEnabled > 0 and GetDistance(myHero, target) > Spells.E.range then
+                CastE()
             end
         end
     end
@@ -231,7 +235,7 @@ function DrawEnemyTeamHP()
                 else
                     usedColor = whiteColor
                 end
-                DrawText(enemy.name .. ' - ' .. maxHp .. ' / ' .. currHp, 32, 150, 800 + 25 * _, usedColor)
+                DrawText(GetObjectName(enemy) .. ' - ' .. currHp .. ' / ' .. maxHp, 32, 150, 800 + 25 * _, usedColor)
             end
         end
     end
